@@ -1,4 +1,4 @@
-# Torch Domain Lending
+# Torch Domain Auction
 
 Domains become tokens. Tokens become collateral. Top holder controls the domain.
 

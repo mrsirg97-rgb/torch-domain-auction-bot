@@ -1,6 +1,6 @@
 ---
-name: torch-domain-lending-bot
-version: "1.0.1"
+name: torch-domain-auction-bot
+version: "1.0.2"
 description: Domain lending protocol on Solana. Domains become tokens. Tokens become collateral. Top holder controls the domain. Borrow SOL against your position -- but get liquidated and you lose the domain. Built on torchsdk v3.2.3 and the Torch Market protocol.
 license: MIT
 disable-model-invocation: true
@@ -18,11 +18,11 @@ metadata:
     install:
       - id: npm-torch-domain-auction-bot
         kind: npm
-        package: torch-domain-auction-bot@^1.0.1
+        package: torch-domain-auction-bot@^1.0.2
         flags: []
-        label: "Install Torch Domain Lending Bot (npm, optional -- SDK is bundled in lib/torchsdk/, kit is in lib/kit/)"
+        label: "Install Torch Domain Auction Bot (npm, optional -- SDK is bundled in lib/torchsdk/, kit is in lib/kit/)"
   author: torch-market
-  version: "1.0.1"
+  version: "1.0.2"
   clawhub: https://clawhub.ai/mrsirg97-rgb/torch-domain-auction-bot
   kit-source: https://github.com/mrsirg97-rgb/torch-domain-auction-bot
   website: https://torch.market
@@ -47,7 +47,7 @@ metadata:
 compatibility: Requires SOLANA_RPC_URL and VAULT_CREATOR. SOLANA_PRIVATE_KEY optional. Agent wallet holds nothing. All value in vault. SDK bundled in lib/torchsdk/, kit (bot + scraper) in lib/kit/.
 ---
 
-# Torch Domain Lending
+# Torch Domain Auction
 
 Domains become tokens. Tokens become collateral. Top holder controls the domain.
 
@@ -115,7 +115,7 @@ The borrower loses their tokens. The domain rotates to whoever is now the larges
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    DOMAIN LENDING BOT                              │
+│                    DOMAIN AUCTION BOT                              │
 │                                                                    │
 │  DISCOVER                                                          │
 │    scrape expiring domains → evaluate quality → generate tickers   │
@@ -208,7 +208,7 @@ If the agent keypair is compromised, the attacker gets dust and vault access you
 ### 1. Install
 
 ```bash
-npm install torch-domain-auction-bot@1.0.1
+npm install torch-domain-auction-bot@1.0.2
 ```
 
 ### 2. Create and Fund a Vault
@@ -264,7 +264,7 @@ First run prints the agent wallet. Link it from your authority wallet, restart.
 
 ```
 packages/
-└── kit/                     Domain lending kit (bot + scraper)
+└── kit/                     Domain auction kit (bot + scraper)
     ├── src/
     │   ├── index.ts           Entry — vault verification, CLI, all exports
     │   ├── config.ts          Env validation, ephemeral keypair

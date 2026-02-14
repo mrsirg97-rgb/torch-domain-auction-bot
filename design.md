@@ -1,10 +1,10 @@
-# Torch Domain Lending Bot -- Design Document
+# Torch Domain Auction Bot -- Design Document
 
-> Domains become tokens. Tokens become collateral. Top holder controls the domain. Version 1.0.1.
+> Domains become tokens. Tokens become collateral. Top holder controls the domain. Version 1.0.2.
 
 ## Overview
 
-The Torch Domain Lending Bot is a single-package kit that implements a domain lending protocol on Torch Market. Domains are launched as tokens via bonding curves, permanently linked after migration, and backed by a built-in lending market. The top token holder controls the domain. Holders can borrow SOL against their tokens, but if they're liquidated, the domain lease rotates to the new top holder.
+The Torch Domain Auction Bot is a single-package kit that implements a domain lending protocol on Torch Market. Domains are launched as tokens via bonding curves, permanently linked after migration, and backed by a built-in lending market. The top token holder controls the domain. Holders can borrow SOL against their tokens, but if they're liquidated, the domain lease rotates to the new top holder.
 
 The kit runs the keeper infrastructure: domain discovery (scraper), token launching, lending market scanning, risk scoring, vault-routed liquidation, and automatic lease rotation. Everything ships as one npm package (`torch-domain-auction-bot`).
 

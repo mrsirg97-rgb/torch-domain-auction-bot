@@ -1,4 +1,4 @@
-# Torch Domain Lending
+# Torch Domain Auction
 
 Domains become tokens. Tokens become collateral. Top holder controls the domain.
 
@@ -16,7 +16,7 @@ A domain lending protocol built on [Torch Market](https://torch.market). Domains
 
 | Path | Description |
 |------|-------------|
-| `packages/kit` | Domain lending kit -- bot (lending monitor, liquidation keeper, lease manager) + scraper (domain discovery, evaluation, ticker generation) |
+| `packages/kit` | Domain auction kit -- bot (lending monitor, liquidation keeper, lease manager) + scraper (domain discovery, evaluation, ticker generation) |
 | `clawhub/` | ClawHub submission -- agent.json, SKILL.md, design.md, audit.md, bundled SDK + compiled kit |
 
 ## Quick Start

@@ -1,7 +1,7 @@
 {
   "name": "torch-domain-auction-bot",
-  "version": "1.0.1",
-  "description": "lending position monitor and auto-liquidation skill using the torchsdk",
+  "version": "1.0.2",
+  "description": "domain lending position monitor and auto-liquidation skill using the torchsdk",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
