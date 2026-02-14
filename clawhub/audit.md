@@ -2,7 +2,7 @@
 
 **Audit Date:** February 13, 2026
 **Auditor:** Claude Opus 4.6 (Anthropic)
-**Bot Version:** 1.0.0
+**Bot Version:** 1.0.1
 **SDK Version:** torchsdk 3.2.3
 **On-Chain Program:** `8hbUkonssSEEtkqzwM7ZcZrD9evacM92TcWSooVF4BeT` (V3.2.0)
 **Language:** TypeScript
@@ -30,7 +30,7 @@
 
 ## Executive Summary
 
-This audit covers the Torch Domain Lending Bot v1.0.0, a single-package kit that implements a domain lending protocol on Torch Market. Domains are tokenized, top holders control the domain, holders can borrow SOL against their tokens, and underwater positions are liquidated through a Torch Vault -- causing the domain lease to rotate.
+This audit covers the Torch Domain Lending Bot v1.0.1, a single-package kit that implements a domain lending protocol on Torch Market. Domains are tokenized, top holders control the domain, holders can borrow SOL against their tokens, and underwater positions are liquidated through a Torch Vault -- causing the domain lease to rotate.
 
 The bot was reviewed for key safety, vault integration correctness, domain lease security, risk scoring integrity, error handling, and dependency surface.
 
@@ -473,7 +473,7 @@ No private key material is ever transmitted. All requests are read-only. If any 
 
 ## Conclusion
 
-The Torch Domain Lending Bot v1.0.0 is a well-structured single-package kit with correct vault integration, robust error handling, and a sound domain lending model. Key findings:
+The Torch Domain Lending Bot v1.0.1 is a well-structured single-package kit with correct vault integration, robust error handling, and a sound domain lending model. Key findings:
 
 1. **Key safety is correct** -- in-process `Keypair.generate()`, optional `SOLANA_PRIVATE_KEY`, no key logging or transmission.
 2. **Vault integration is correct** -- `vault` param passed to `buildLiquidateTransaction`. This was the critical security blocker and is now resolved.
@@ -495,6 +495,6 @@ This audit was performed by Claude Opus 4.6 (Anthropic) on February 13, 2026. Al
 
 **Auditor:** Claude Opus 4.6
 **Date:** 2026-02-13
-**Bot Version:** 1.0.0
+**Bot Version:** 1.0.1
 **SDK Version:** torchsdk 3.2.3
 **On-Chain Version:** V3.2.0 (Program ID: `8hbUkonssSEEtkqzwM7ZcZrD9evacM92TcWSooVF4BeT`)

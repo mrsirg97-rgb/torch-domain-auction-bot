@@ -51,9 +51,7 @@ const loadConfig = (walletOverride) => {
     const vaultCreator = process.env.VAULT_CREATOR;
     if (!vaultCreator)
         throw new Error('VAULT_CREATOR env var is required (vault creator pubkey)');
-    const { keypair } = walletOverride
-        ? { keypair: walletOverride }
-        : (0, exports.loadKeypair)();
+    const { keypair } = walletOverride ? { keypair: walletOverride } : (0, exports.loadKeypair)();
     const scanIntervalMs = Number(envOrDefault('BOT_SCAN_INTERVAL_MS', '60000'));
     if (isNaN(scanIntervalMs) || scanIntervalMs < 5000) {
         throw new Error('BOT_SCAN_INTERVAL_MS must be a number >= 5000');

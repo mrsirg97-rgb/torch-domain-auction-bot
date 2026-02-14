@@ -67,7 +67,7 @@ class WalletProfiler {
                     const balanceLamports = await connection.getBalance(pubkey);
                     // rough heuristic: assume wallet started with ~1 SOL in fees
                     // positive balance beyond that suggests net positive trading
-                    pnlSol = (balanceLamports / 1000000000) - 1;
+                    pnlSol = balanceLamports / 1000000000 - 1;
                 }
                 catch {
                     // balance check failed, leave at 0

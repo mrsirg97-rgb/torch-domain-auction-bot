@@ -30,8 +30,7 @@ export const expiredDomainsProvider: DomainProvider = {
       const html = await response.text()
 
       // parse domain names from the response (basic extraction)
-      const domainRegex =
-        /class="field_name"[^>]*><a[^>]*>([a-z0-9-]+)\.([a-z]{2,6})<\/a>/gi
+      const domainRegex = /class="field_name"[^>]*><a[^>]*>([a-z0-9-]+)\.([a-z]{2,6})<\/a>/gi
       let match: RegExpExecArray | null
       while ((match = domainRegex.exec(html)) !== null && listings.length < opts.limit) {
         const name = match[1].toLowerCase()

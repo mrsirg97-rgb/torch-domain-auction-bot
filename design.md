@@ -1,12 +1,12 @@
 # Torch Domain Lending Bot -- Design Document
 
-> Domains become tokens. Tokens become collateral. Top holder controls the domain. Version 1.0.0.
+> Domains become tokens. Tokens become collateral. Top holder controls the domain. Version 1.0.1.
 
 ## Overview
 
-The Torch Domain Lending Bot is a two-package system that implements a domain lending protocol on Torch Market. Domains are launched as tokens via bonding curves, permanently linked after migration, and backed by a built-in lending market. The top token holder controls the domain. Holders can borrow SOL against their tokens, but if they're liquidated, the domain lease rotates to the new top holder.
+The Torch Domain Lending Bot is a single-package kit that implements a domain lending protocol on Torch Market. Domains are launched as tokens via bonding curves, permanently linked after migration, and backed by a built-in lending market. The top token holder controls the domain. Holders can borrow SOL against their tokens, but if they're liquidated, the domain lease rotates to the new top holder.
 
-The bot runs the keeper infrastructure: domain discovery, token launching, lending market scanning, risk scoring, vault-routed liquidation, and automatic lease rotation.
+The kit runs the keeper infrastructure: domain discovery (scraper), token launching, lending market scanning, risk scoring, vault-routed liquidation, and automatic lease rotation. Everything ships as one npm package (`torch-domain-auction-bot`).
 
 Built on `torchsdk@3.2.3`. Targets the Torch Market program (`8hbUkonssSEEtkqzwM7ZcZrD9evacM92TcWSooVF4BeT`).
 
@@ -35,52 +35,48 @@ The consequence of liquidation is not just financial -- you lose the domain. Thi
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      SCRAPER PACKAGE                              │
+│                    KIT PACKAGE (packages/kit)                      │
 │                                                                    │
-│  Discovers domains worth tokenizing                                │
-│                                                                    │
-│  providers/expired-domains.ts → scrape registrar feeds             │
-│  providers/availability.ts    → check domain availability          │
-│  evaluator.ts                 → score domain quality               │
-│  ticker.ts                    → generate token symbols             │
-│  scanner.ts                   → orchestrate the pipeline           │
-└────────────────────────────────────┬────────────────────────────┘
-                                     │ domain candidates
-                                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        BOT PACKAGE                                 │
-│                                                                    │
-│  main()                                                            │
-│    ├── loadConfig()              → validate env, load keypair      │
-│    ├── getVault()                → vault must exist                  │
-│    ├── getVaultForWallet()       → agent must be linked             │
-│    └── runMonitor()                                                 │
-│         │                                                           │
-│         ├── scanForLendingMarkets()                                 │
-│         │    ├── getTokens({ status: 'migrated' })                  │
-│         │    ├── getToken(mint) + getLendingInfo(mint)               │
-│         │    └── discoverBorrowers() via getHolders + getLoanPosition│
-│         │                                                           │
-│         ├── updateLeases()                                          │
-│         │    ├── expire stale leases                                │
-│         │    ├── checkTopHolder(mint) for each domain token         │
-│         │    └── create/rotate lease if holder changed              │
-│         │                                                           │
-│         └── for each token with active loans:                       │
-│              ├── update price history                               │
-│              ├── WalletProfiler.profile(borrower)                   │
-│              │    ├── verifySaid(address)                            │
-│              │    └── analyzeTradeHistory(address)                   │
-│              ├── scoreLoan(token, borrower, position, profile)      │
-│              │    ├── LTV proximity     (35%)                       │
-│              │    ├── price momentum    (25%)                       │
-│              │    ├── wallet reputation (20%)                       │
-│              │    └── interest burden   (20%)                       │
-│              └── Liquidator.tryLiquidate(connection, scored)        │
-│                   ├── check: liquidatable? above threshold? profit? │
-│                   ├── buildLiquidateTransaction(vault=creator)      │
-│                   ├── partialSign(agentKeypair)                     │
-│                   └── sendRawTransaction → confirmTransaction       │
+│  src/scraper/    Domain Discovery                                  │
+│    providers/expired-domains.ts → scrape registrar feeds           │
+│    providers/availability.ts    → check domain availability        │
+│    evaluator.ts                 → score domain quality             │
+│    ticker.ts                    → generate token symbols           │
+│    scanner.ts                   → orchestrate the pipeline         │
+│                                     │ domain candidates            │
+│                                     ▼                              │
+│  src/            Bot Core                                          │
+│    main()                                                          │
+│      ├── loadConfig()              → validate env, load keypair    │
+│      ├── getVault()                → vault must exist              │
+│      ├── getVaultForWallet()       → agent must be linked          │
+│      └── runMonitor()                                              │
+│           │                                                        │
+│           ├── scanForLendingMarkets()                               │
+│           │    ├── getTokens({ status: 'migrated' })               │
+│           │    ├── getToken(mint) + getLendingInfo(mint)            │
+│           │    └── discoverBorrowers() via getHolders + getLoanPos  │
+│           │                                                        │
+│           ├── updateLeases()                                       │
+│           │    ├── expire stale leases                             │
+│           │    ├── checkTopHolder(mint) for each domain token      │
+│           │    └── create/rotate lease if holder changed           │
+│           │                                                        │
+│           └── for each token with active loans:                    │
+│                ├── update price history                            │
+│                ├── WalletProfiler.profile(borrower)                │
+│                │    ├── verifySaid(address)                        │
+│                │    └── analyzeTradeHistory(address)               │
+│                ├── scoreLoan(token, borrower, position, profile)   │
+│                │    ├── LTV proximity     (35%)                    │
+│                │    ├── price momentum    (25%)                    │
+│                │    ├── wallet reputation (20%)                    │
+│                │    └── interest burden   (20%)                    │
+│                └── Liquidator.tryLiquidate(connection, scored)     │
+│                     ├── check: liquidatable? above threshold?      │
+│                     ├── buildLiquidateTransaction(vault=creator)   │
+│                     ├── partialSign(agentKeypair)                  │
+│                     └── sendRawTransaction → confirmTransaction    │
 └────────────────────────────────────┬────────────────────────────┘
                                      │
                                      ▼
@@ -103,11 +99,11 @@ The consequence of liquidation is not just financial -- you lose the domain. Thi
 
 ## Module Structure
 
-### Bot Package
+### Bot Core (`src/`)
 
 | File | Role | Lines |
 |------|------|-------|
-| `index.ts` | Entry point -- vault verification, startup banner, CLI routing | ~120 |
+| `index.ts` | Entry point -- vault verification, startup banner, CLI routing, all exports | ~130 |
 | `config.ts` | Env validation, ephemeral keypair generation, vault creator loading | ~80 |
 | `monitor.ts` | Main scan loop -- scan, score, liquidate, rotate leases | ~83 |
 | `scanner.ts` | Lending market discovery, borrower probing | ~107 |
@@ -117,11 +113,11 @@ The consequence of liquidation is not just financial -- you lose the domain. Thi
 | `launcher.ts` | Domain token creation via `buildCreateTokenTransaction` | ~39 |
 | `domain-manager.ts` | Lease tracking, top holder checking, rotation | ~72 |
 | `ticker.ts` | Token symbol generation from domain names | ~35 |
-| `logger.ts` | Structured logger with child logger support | ~35 |
+| `logger.ts` | Structured logger with child logger support (shared across all modules) | ~35 |
 | `types.ts` | All interfaces -- BotConfig, MonitoredToken, ScoredLoan, etc. | ~110 |
-| `utils.ts` | sleep, sol, bpsToPercent, clamp, decodeBase58 | ~30 |
+| `utils.ts` | sleep, sol, bpsToPercent, clamp, decodeBase58 | ~34 |
 
-### Scraper Package
+### Scraper (`src/scraper/`)
 
 | File | Role |
 |------|------|
@@ -129,6 +125,8 @@ The consequence of liquidation is not just financial -- you lose the domain. Thi
 | `scanner.ts` | Domain scanning orchestrator |
 | `evaluator.ts` | Quality scoring (length, TLD, keywords, market signals) |
 | `ticker.ts` | Symbol generation |
+| `config.ts` | Scraper config (env vars) |
+| `types.ts` | Scraper types (re-exports LogLevel from parent) |
 | `providers/expired-domains.ts` | Expiring domain feed |
 | `providers/availability.ts` | Domain availability checking |
 

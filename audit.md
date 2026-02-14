@@ -2,11 +2,11 @@
 
 **Audit Date:** February 13, 2026
 **Auditor:** Claude Opus 4.6 (Anthropic)
-**Bot Version:** 1.0.0
+**Bot Version:** 1.0.1
 **SDK Version:** torchsdk 3.2.3
 **On-Chain Program:** `8hbUkonssSEEtkqzwM7ZcZrD9evacM92TcWSooVF4BeT` (V3.2.0)
 **Language:** TypeScript
-**Test Result:** 8 passed, 0 failed (Surfpool mainnet fork)
+**Test Result:** 10 passed, 0 failed (Surfpool mainnet fork)
 
 ---
 
@@ -30,7 +30,7 @@
 
 ## Executive Summary
 
-This audit covers the Torch Domain Lending Bot v1.0.0, a two-package system that implements a domain lending protocol on Torch Market. Domains are tokenized, top holders control the domain, holders can borrow SOL against their tokens, and underwater positions are liquidated through a Torch Vault -- causing the domain lease to rotate.
+This audit covers the Torch Domain Lending Bot v1.0.1, a single-package kit that implements a domain lending protocol on Torch Market. Domains are tokenized, top holders control the domain, holders can borrow SOL against their tokens, and underwater positions are liquidated through a Torch Vault -- causing the domain lease to rotate.
 
 The bot was reviewed for key safety, vault integration correctness, domain lease security, risk scoring integrity, error handling, and dependency surface.
 
@@ -63,38 +63,35 @@ The bot was reviewed for key safety, vault integration correctness, domain lease
 
 ### Files Reviewed
 
-**Bot Package:**
+**Kit Package (`packages/kit/`):**
 
 | File | Lines | Role |
 |------|-------|------|
-| `packages/bot/src/index.ts` | ~120 | Entry: vault verification, startup banner, CLI |
-| `packages/bot/src/config.ts` | ~80 | Env validation, ephemeral keypair |
-| `packages/bot/src/monitor.ts` | ~83 | Scan loop orchestration |
-| `packages/bot/src/scanner.ts` | ~107 | Lending market discovery |
-| `packages/bot/src/liquidator.ts` | ~89 | Vault-routed liquidation |
-| `packages/bot/src/risk-scorer.ts` | ~89 | Four-factor risk scoring |
-| `packages/bot/src/wallet-profiler.ts` | ~127 | SAID verification, trade analysis |
-| `packages/bot/src/launcher.ts` | ~39 | Domain token creation |
-| `packages/bot/src/domain-manager.ts` | ~72 | Lease tracking and rotation |
-| `packages/bot/src/ticker.ts` | ~35 | Symbol generation |
-| `packages/bot/src/logger.ts` | ~35 | Structured logging |
-| `packages/bot/src/types.ts` | ~110 | Type definitions |
-| `packages/bot/src/utils.ts` | ~30 | Helpers, base58 decoder |
-| `packages/bot/tests/test_bot.ts` | ~346 | E2E test suite |
-| `packages/bot/package.json` | ~37 | Dependencies |
+| `src/index.ts` | ~130 | Entry: vault verification, startup banner, CLI, all exports |
+| `src/config.ts` | ~80 | Env validation, ephemeral keypair |
+| `src/monitor.ts` | ~83 | Scan loop orchestration |
+| `src/scanner.ts` | ~107 | Lending market discovery |
+| `src/liquidator.ts` | ~89 | Vault-routed liquidation |
+| `src/risk-scorer.ts` | ~89 | Four-factor risk scoring |
+| `src/wallet-profiler.ts` | ~127 | SAID verification, trade analysis |
+| `src/launcher.ts` | ~39 | Domain token creation |
+| `src/domain-manager.ts` | ~72 | Lease tracking and rotation |
+| `src/ticker.ts` | ~35 | Symbol generation |
+| `src/logger.ts` | ~35 | Structured logging (shared across all modules) |
+| `src/types.ts` | ~110 | Type definitions |
+| `src/utils.ts` | ~34 | Helpers, base58 decoder |
+| `src/scraper/index.ts` | ~43 | Scraper CLI entry |
+| `src/scraper/scanner.ts` | ~36 | Domain scanning |
+| `src/scraper/evaluator.ts` | ~71 | Quality scoring |
+| `src/scraper/ticker.ts` | ~48 | Symbol generation |
+| `src/scraper/config.ts` | ~11 | Scraper config |
+| `src/scraper/types.ts` | ~30 | Scraper types |
+| `src/scraper/providers/*.ts` | ~115 | Data sources |
+| `tests/test_bot.ts` | ~346 | Bot E2E test suite |
+| `tests/test_scraper.ts` | ~198 | Scraper unit tests |
+| `package.json` | ~37 | Dependencies |
 
-**Scraper Package:**
-
-| File | Role |
-|------|------|
-| `packages/scraper/src/index.ts` | CLI entry |
-| `packages/scraper/src/scanner.ts` | Domain scanning |
-| `packages/scraper/src/evaluator.ts` | Quality scoring |
-| `packages/scraper/src/ticker.ts` | Symbol generation |
-| `packages/scraper/src/providers/*.ts` | Data sources |
-| `packages/scraper/package.json` | Dependencies |
-
-**Total:** ~1,400 lines across both packages.
+**Total:** ~1,600 lines in one package.
 
 ### SDK Cross-Reference
 
@@ -347,7 +344,7 @@ No single failure can crash the bot. Each level catches independently.
 
 ## Dependency Analysis
 
-### Runtime Dependencies (Bot)
+### Runtime Dependencies
 
 | Package | Version | Pinning | Post-Install | Risk |
 |---------|---------|---------|-------------|------|
@@ -356,15 +353,6 @@ No single failure can crash the bot. Each level catches independently.
 | `@coral-xyz/anchor` | 0.32.1 | Exact | None | Low |
 | `@solana/spl-token` | 0.4.14 | Exact | None | Low |
 | `bs58` | 6.0.0 | Exact | None | Low |
-
-### Runtime Dependencies (Scraper)
-
-| Package | Version | Pinning | Risk |
-|---------|---------|---------|------|
-| `@coral-xyz/anchor` | 0.32.1 | Exact | Low |
-| `@solana/spl-token` | 0.4.14 | Exact | Low |
-| `@solana/web3.js` | 1.98.4 | Exact | Low |
-| `bs58` | 6.0.0 | Exact | Low |
 
 ### Supply Chain
 
@@ -485,7 +473,7 @@ No private key material is ever transmitted. All requests are read-only. If any 
 
 ## Conclusion
 
-The Torch Domain Lending Bot v1.0.0 is a well-structured system with correct vault integration, robust error handling, and a sound domain lending model. Key findings:
+The Torch Domain Lending Bot v1.0.1 is a well-structured single-package kit with correct vault integration, robust error handling, and a sound domain lending model. Key findings:
 
 1. **Key safety is correct** -- in-process `Keypair.generate()`, optional `SOLANA_PRIVATE_KEY`, no key logging or transmission.
 2. **Vault integration is correct** -- `vault` param passed to `buildLiquidateTransaction`. This was the critical security blocker and is now resolved.
@@ -503,10 +491,10 @@ The bot is safe for production use as an autonomous domain lending keeper operat
 
 ## Audit Certification
 
-This audit was performed by Claude Opus 4.6 (Anthropic) on February 13, 2026. All source files in both packages were read in full and cross-referenced against the torchsdk v3.2.3 audit. The E2E test suite (8 passed) validates the bot against a Surfpool mainnet fork.
+This audit was performed by Claude Opus 4.6 (Anthropic) on February 13, 2026. All source files were read in full and cross-referenced against the torchsdk v3.2.3 audit. The E2E test suite (10 passed) validates the bot against a Surfpool mainnet fork.
 
 **Auditor:** Claude Opus 4.6
 **Date:** 2026-02-13
-**Bot Version:** 1.0.0
+**Bot Version:** 1.0.1
 **SDK Version:** torchsdk 3.2.3
 **On-Chain Version:** V3.2.0 (Program ID: `8hbUkonssSEEtkqzwM7ZcZrD9evacM92TcWSooVF4BeT`)

@@ -7,8 +7,16 @@ import type { DomainProvider, DomainListing } from '../types'
  */
 
 const CANDIDATE_NAMES = [
-  'aibot', 'solpay', 'defiai', 'web3go', 'chainx',
-  'nftlab', 'cryptox', 'swapai', 'payfi', 'tokenv',
+  'aibot',
+  'solpay',
+  'defiai',
+  'web3go',
+  'chainx',
+  'nftlab',
+  'cryptox',
+  'swapai',
+  'payfi',
+  'tokenv',
 ]
 
 const CANDIDATE_TLDS = ['com', 'io', 'ai', 'xyz', 'dev']

@@ -7,8 +7,16 @@ exports.availabilityProvider = void 0;
  * v1: checks a predefined list of interesting short domains.
  */
 const CANDIDATE_NAMES = [
-    'aibot', 'solpay', 'defiai', 'web3go', 'chainx',
-    'nftlab', 'cryptox', 'swapai', 'payfi', 'tokenv',
+    'aibot',
+    'solpay',
+    'defiai',
+    'web3go',
+    'chainx',
+    'nftlab',
+    'cryptox',
+    'swapai',
+    'payfi',
+    'tokenv',
 ];
 const CANDIDATE_TLDS = ['com', 'io', 'ai', 'xyz', 'dev'];
 const checkRdap = async (name, tld) => {

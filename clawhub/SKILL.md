@@ -1,6 +1,6 @@
 ---
 name: torch-domain-lending-bot
-version: "1.0.0"
+version: "1.0.1"
 description: Domain lending protocol on Solana. Domains become tokens. Tokens become collateral. Top holder controls the domain. Borrow SOL against your position -- but get liquidated and you lose the domain. Built on torchsdk v3.2.3 and the Torch Market protocol.
 license: MIT
 disable-model-invocation: true
@@ -18,11 +18,11 @@ metadata:
     install:
       - id: npm-torch-domain-auction-bot
         kind: npm
-        package: torch-domain-auction-bot@^1.0.0
+        package: torch-domain-auction-bot@^1.0.1
         flags: []
         label: "Install Torch Domain Lending Bot (npm, optional -- SDK is bundled in lib/torchsdk/, kit is in lib/kit/)"
   author: torch-market
-  version: "1.0.0"
+  version: "1.0.1"
   clawhub: https://clawhub.ai/mrsirg97-rgb/torch-domain-auction-bot
   kit-source: https://github.com/mrsirg97-rgb/torch-domain-auction-bot
   website: https://torch.market
@@ -208,7 +208,7 @@ If the agent keypair is compromised, the attacker gets dust and vault access you
 ### 1. Install
 
 ```bash
-npm install torch-domain-auction-bot@1.0.0
+npm install torch-domain-auction-bot@1.0.1
 ```
 
 ### 2. Create and Fund a Vault
@@ -239,7 +239,7 @@ const { transaction: depositTx } = await buildDepositVaultTransaction(connection
 ### 3. Run
 
 ```bash
-VAULT_CREATOR=<vault-creator-pubkey> SOLANA_RPC_URL=<rpc-url> npx torch-domain-bot monitor
+VAULT_CREATOR=<vault-creator-pubkey> SOLANA_RPC_URL=<rpc-url> npx torch-domain-auction-bot monitor
 ```
 
 First run prints the agent wallet. Link it from your authority wallet, restart.

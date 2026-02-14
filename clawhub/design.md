@@ -1,6 +1,6 @@
 # Torch Domain Lending Bot -- Design Document
 
-> Domains become tokens. Tokens become collateral. Top holder controls the domain. Version 1.0.0.
+> Domains become tokens. Tokens become collateral. Top holder controls the domain. Version 1.0.1.
 
 ## Overview
 

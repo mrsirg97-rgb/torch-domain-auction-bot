@@ -49,7 +49,11 @@ console.log('\n[1] Ticker Generation')
 assert('short word', generateTicker('abc.com') === 'ABC', `got ${generateTicker('abc.com')}`)
 
 // exact 6 char word
-assert('6-char word', generateTicker('crypto.io') === 'CRYPTO', `got ${generateTicker('crypto.io')}`)
+assert(
+  '6-char word',
+  generateTicker('crypto.io') === 'CRYPTO',
+  `got ${generateTicker('crypto.io')}`,
+)
 
 // long single word -> prefix
 const longTicker = generateTicker('cryptocurrency.com')
@@ -70,11 +74,7 @@ assert(
 )
 
 // padding for very short
-assert(
-  'padding short',
-  generateTicker('a.com') === 'AXX',
-  `got ${generateTicker('a.com')}`,
-)
+assert('padding short', generateTicker('a.com') === 'AXX', `got ${generateTicker('a.com')}`)
 
 // always uppercase
 assert('uppercase', generateTicker('hello.com') === 'HELLO', `got ${generateTicker('hello.com')}`)

@@ -22,9 +22,7 @@ export class Liquidator {
   ): Promise<LiquidationResult | null> => {
     // skip healthy positions
     if (scored.position.health === 'healthy') {
-      this.log.debug(
-        `skipping ${scored.borrower.slice(0, 8)}... — position is healthy`,
-      )
+      this.log.debug(`skipping ${scored.borrower.slice(0, 8)}... — position is healthy`)
       return null
     }
 

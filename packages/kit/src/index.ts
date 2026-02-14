@@ -33,12 +33,7 @@ export type {
 export { scanDomains } from './scraper/scanner'
 export { evaluateDomain } from './scraper/evaluator'
 export { generateTicker as generateScraperTicker } from './scraper/ticker'
-export type {
-  DomainListing,
-  DomainProvider,
-  ScoredDomain,
-  ScraperConfig,
-} from './scraper/types'
+export type { DomainListing, DomainProvider, ScoredDomain, ScraperConfig } from './scraper/types'
 
 const printUsage = () => {
   console.log(`torch-domain-bot — domain auction bot for torch.market
