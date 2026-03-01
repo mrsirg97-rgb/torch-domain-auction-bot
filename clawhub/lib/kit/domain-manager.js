@@ -2,9 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateLeases = exports.checkTopHolder = void 0;
 const torchsdk_1 = require("torchsdk");
+const utils_1 = require("./utils");
 const DEFAULT_LEASE_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const checkTopHolder = async (connection, mint) => {
-    const result = await (0, torchsdk_1.getHolders)(connection, mint, 1);
+    const result = await (0, utils_1.withTimeout)((0, torchsdk_1.getHolders)(connection, mint, 1), 30000, 'getHolders');
     if (result.holders.length === 0)
         return null;
     return result.holders[0].address;

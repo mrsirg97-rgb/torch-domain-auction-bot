@@ -61,13 +61,13 @@ const main = async () => {
     console.log(`scan interval: ${config.scanIntervalMs}ms`);
     console.log();
     // verify vault exists
-    const vault = await (0, torchsdk_1.getVault)(connection, config.vaultCreator);
+    const vault = await (0, utils_1.withTimeout)((0, torchsdk_1.getVault)(connection, config.vaultCreator), 30000, 'getVault');
     if (!vault) {
         throw new Error(`vault not found for creator ${config.vaultCreator}`);
     }
     log.info(`vault found — authority=${vault.authority}`);
     // verify agent wallet is linked to vault
-    const link = await (0, torchsdk_1.getVaultForWallet)(connection, config.walletKeypair.publicKey.toBase58());
+    const link = await (0, utils_1.withTimeout)((0, torchsdk_1.getVaultForWallet)(connection, config.walletKeypair.publicKey.toBase58()), 30000, 'getVaultForWallet');
     if (!link) {
         console.log();
         console.log('--- ACTION REQUIRED ---');

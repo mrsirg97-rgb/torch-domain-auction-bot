@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletProfiler = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const torchsdk_1 = require("torchsdk");
-const CACHE_TTL_MS = 60000;
+const utils_1 = require("./utils");
+const CACHE_TTL_MS = 30000;
 class WalletProfiler {
     constructor(log) {
         this.cache = new Map();
@@ -19,7 +20,7 @@ class WalletProfiler {
             let saidVerified = false;
             let trustTier = null;
             try {
-                const said = await (0, torchsdk_1.verifySaid)(address);
+                const said = await (0, utils_1.withTimeout)((0, torchsdk_1.verifySaid)(address), 10000, 'verifySaid');
                 saidVerified = said.verified;
                 trustTier = said.trustTier;
             }

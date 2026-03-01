@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.decodeBase58 = exports.clamp = exports.bpsToPercent = exports.sol = exports.sleep = void 0;
+exports.decodeBase58 = exports.withTimeout = exports.clamp = exports.bpsToPercent = exports.sol = exports.sleep = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 exports.sleep = sleep;
@@ -10,6 +10,13 @@ const bpsToPercent = (bps) => (bps / 100).toFixed(2) + '%';
 exports.bpsToPercent = bpsToPercent;
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 exports.clamp = clamp;
+const withTimeout = (promise, ms, label) => {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(`timeout after ${ms}ms: ${label}`)), ms);
+        promise.then((val) => { clearTimeout(timer); resolve(val); }, (err) => { clearTimeout(timer); reject(err); });
+    });
+};
+exports.withTimeout = withTimeout;
 // base58 decoder — avoids ESM-only bs58 dependency
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 const decodeBase58 = (s) => {

@@ -2,7 +2,7 @@
 
 **Audit Date:** February 28, 2026
 **Auditor:** Claude Opus 4.6 (Anthropic)
-**Bot Version:** 2.0.0
+**Bot Version:** 2.0.1
 **SDK Version:** torchsdk 3.7.23
 **On-Chain Program:** `8hbUkonssSEEtkqzwM7ZcZrD9evacM92TcWSooVF4BeT` (V3.7.8)
 **Language:** TypeScript
@@ -32,9 +32,9 @@
 
 ## Executive Summary
 
-This audit covers the Torch Domain Auction Bot v2.0.0, a single-package kit that implements a domain lending protocol on Torch Market. Domains are tokenized, top holders control the domain, holders can borrow SOL against their tokens, and underwater positions are liquidated through a Torch Vault — causing the domain lease to rotate.
+This audit covers the Torch Domain Auction Bot v2.0.1, a single-package kit that implements a domain lending protocol on Torch Market. Domains are tokenized, top holders control the domain, holders can borrow SOL against their tokens, and underwater positions are liquidated through a Torch Vault — causing the domain lease to rotate.
 
-This is a re-audit updating coverage from v1.0.2 (torchsdk 3.2.3) to v2.0.0 (torchsdk 3.7.23, on-chain program V3.7.8).
+This is a re-audit updating coverage from v1.0.2 (torchsdk 3.2.3) to v2.0.1 (torchsdk 3.7.23, on-chain program V3.7.8).
 
 The bot was reviewed for key safety, vault integration correctness, domain lease security, risk scoring integrity, error handling, and dependency surface.
 
@@ -58,10 +58,10 @@ The bot was reviewed for key safety, vault integration correctness, domain lease
 | Critical | 0 |
 | High | 0 |
 | Medium | 0 |
-| Low | 1 |
+| Low | 0 |
 | Informational | 5 |
 
-One low finding from v1.0.2 resolved (L-2: No Timeout on SDK Calls — not applicable, see Prior Findings). One low finding carried forward (L-1: Wallet Profiler Cache).
+Both low findings from v1.0.2 resolved: L-1 (Wallet Profiler Cache — TTL reduced to 30s) and L-2 (No Timeout on SDK Calls — all SDK calls now wrapped with `withTimeout(promise, 30_000, label)`).
 
 ---
 
@@ -115,7 +115,7 @@ The bot relies on `torchsdk@3.7.23` for all on-chain interaction. The SDK was in
 6. **Error handling analysis** — crash paths, retry behavior, log safety
 7. **Dependency audit** — runtime deps, dev deps, post-install hooks, version pinning
 8. **E2E test review** — coverage, assertions, false positives
-9. **Delta analysis** — changes from v1.0.2 to v2.0.0
+9. **Delta analysis** — changes from v1.0.2 to v2.0.1
 
 ---
 
@@ -139,10 +139,10 @@ SDK additions **not used** by the bot (no new attack surface): treasury lock PDA
 
 ### Borrower Discovery Improvement
 
-v1.0.2 used `getHolders(connection, mint, 20)` to discover potential borrowers, limited to 20 holders. v2.0.0 uses `getAllLoanPositions(connection, mint)` which returns all active loan positions directly — no holder limit, no missed borrowers.
+v1.0.2 used `getHolders(connection, mint, 20)` to discover potential borrowers, limited to 20 holders. v2.0.1 uses `getAllLoanPositions(connection, mint)` which returns all active loan positions directly — no holder limit, no missed borrowers.
 
 ```typescript
-// scanner.ts:18-30 (v2.0.0)
+// scanner.ts:18-30 (v2.0.1)
 const discoverBorrowers = async (connection, mint, log) => {
   const { positions } = await getAllLoanPositions(connection, mint)
   return positions.map((p) => p.borrower)
@@ -420,9 +420,11 @@ Dev dependencies are not shipped in the runtime bundle and have no security impa
 | **ExpiredDomains.net** | Expired domain listings | None (GET, User-Agent only) | Yes (scraper) |
 | **RDAP** (`rdap.org`) | Domain availability | Domain name in URL (public) | Yes (scraper) |
 
-No private key material is ever transmitted. All requests are read-only GETs/HEADs. If any service is unreachable, the bot degrades gracefully.
+No private key material is ever transmitted. All requests are read-only GETs/HEADs. No credentials are sent to any external service. If any service is unreachable, the bot degrades gracefully — the error is caught by the four-level isolation and the bot continues to the next token or cycle.
 
-**Verdict:** Minimal and locked dependency surface. No supply chain concerns.
+All external API calls are wrapped with `withTimeout` — 30s for SDK calls (RPC-backed), 10s for `verifySaid` (external API). A hanging or unresponsive endpoint cannot stall the bot.
+
+**Verdict:** Minimal and locked dependency surface. No supply chain concerns. All external calls are read-only, credential-free, and timeout-bounded.
 
 ---
 
@@ -467,13 +469,12 @@ No private key material is ever transmitted. All requests are read-only GETs/HEA
 
 ## Findings
 
-### L-1: Wallet Profiler Caches May Bias Risk Scores
+### L-1: Wallet Profiler Caches May Bias Risk Scores — **RESOLVED**
 
 **Severity:** Low
-**File:** `wallet-profiler.ts:23`
-**Description:** Wallet profiles are cached for 60 seconds (`CACHE_TTL_MS`). During volatile markets, a profile cached before a rapid sell-off may understate wallet risk, slightly delaying liquidation.
-**Impact:** Marginally delayed liquidation for borrowers who just began suspicious activity.
-**Recommendation:** Reduce cache TTL to 30s or clear cache on large price movements.
+**File:** `wallet-profiler.ts:6`
+**Description:** Wallet profiles were cached for 60 seconds (`CACHE_TTL_MS`). During volatile markets, a profile cached before a rapid sell-off could understate wallet risk, slightly delaying liquidation.
+**Resolution:** Cache TTL reduced from 60s to 30s (`CACHE_TTL_MS = 30_000`). The primary liquidation gate remains on-chain health status — the risk score is a secondary filter.
 
 ### I-1: Lease Duration Not Configurable
 
@@ -513,13 +514,22 @@ No private key material is ever transmitted. All requests are read-only GETs/HEA
 
 ## Prior Findings Status
 
-### L-1: Wallet Profiler Caches May Bias Risk Scores (v1.0.2) — **OPEN**
+### L-1: Wallet Profiler Caches May Bias Risk Scores (v1.0.2) — **RESOLVED**
 
-Carried forward unchanged. Cache TTL remains 60 seconds. Severity remains low — the primary liquidation gate is on-chain health status, not the risk score.
+Cache TTL reduced from 60s to 30s (`CACHE_TTL_MS = 30_000` in `wallet-profiler.ts:6`). The primary liquidation gate remains on-chain health status — the risk score is a secondary filter. With 30s TTL, profile staleness is bounded to half a scan cycle.
 
-### L-2: No Timeout on SDK Calls (v1.0.2) — **RESOLVED / NOT APPLICABLE**
+### L-2: No Timeout on SDK Calls (v1.0.2) — **RESOLVED**
 
-The v1.0.2 audit noted that SDK calls had no explicit timeout. In v2.0.0, the bot's architecture inherently mitigates this: the four-level error isolation ensures that a hanging call in any individual token or borrower path does not block the entire scan loop. Each token and borrower is processed in its own try/catch. The cycle-level `sleep(config.scoreIntervalMs)` ensures the loop continues regardless. While individual SDK calls still lack `Promise.race` timeouts, the practical impact is bounded — a single hanging call blocks one borrower's scoring, not the entire bot.
+All SDK calls are now wrapped with `withTimeout(promise, 30_000, label)` from `utils.ts`. A hanging or unresponsive RPC endpoint cannot stall the bot — the call rejects after 30 seconds, the error is caught by the four-level error isolation, and the bot continues to the next token or cycle.
+
+**Evidence:**
+- `scanner.ts` — `getTokens`, `getToken`, `getLendingInfo`, `getAllLoanPositions` wrapped
+- `monitor.ts` — `getToken`, `getAllLoanPositions` wrapped
+- `liquidator.ts` — `buildLiquidateTransaction` wrapped
+- `launcher.ts` — `buildCreateTokenTransaction` wrapped
+- `domain-manager.ts` — `getHolders` wrapped
+- `wallet-profiler.ts` — `verifySaid` wrapped (10s timeout for external API)
+- `index.ts` — `getVault`, `getVaultForWallet` wrapped
 
 ### I-1: Holder Discovery Limited to 20 (v1.0.2) — **RESOLVED**
 
@@ -533,7 +543,7 @@ The bot now uses `getAllLoanPositions(connection, mint)` instead of `getHolders(
 
 ## Conclusion
 
-The Torch Domain Auction Bot v2.0.0 is a well-structured single-package kit with correct vault integration, robust error handling, and a sound domain lending model. Changes from v1.0.2:
+The Torch Domain Auction Bot v2.0.1 is a well-structured single-package kit with correct vault integration, robust error handling, and a sound domain lending model. Changes from v1.0.2:
 
 1. **SDK upgraded from 3.2.3 to 3.7.23** — the bot correctly uses the new `getAllLoanPositions` bulk scanner for complete borrower discovery. No new attack surface from unused SDK features.
 2. **Borrower discovery improved** — `getAllLoanPositions` replaces holder-limited discovery, resolving I-1 from v1.0.2.
@@ -542,8 +552,9 @@ The Torch Domain Auction Bot v2.0.0 is a well-structured single-package kit with
 5. **Domain lease rotation remains correct** — top holder tracked accurately, leases expire and rotate as expected.
 6. **Risk scoring remains sound** — four factors, weights sum to 1.0, all bounded 0-100, configurable threshold.
 7. **Error handling is robust** — four levels of isolation. No single failure crashes the bot.
-8. **Dependencies remain minimal and pinned** — 5 runtime deps, all exact versions, no `^` ranges, no post-install hooks.
-9. **No critical, high, or medium findings** — 1 low (carried forward), 5 informational.
+8. **SDK call timeouts added** — all SDK calls wrapped with `withTimeout(promise, 30_000, label)`. External API calls (verifySaid) use 10s timeout. No hanging call can stall the bot.
+9. **Dependencies remain minimal and pinned** — 5 runtime deps, all exact versions, no `^` ranges, no post-install hooks.
+10. **No critical, high, medium, or low findings** — all prior low findings resolved, 5 informational.
 
 The bot is safe for production use as an autonomous domain lending keeper operating through a Torch Vault.
 
@@ -555,7 +566,7 @@ This audit was performed by Claude Opus 4.6 (Anthropic) on February 28, 2026. Al
 
 **Auditor:** Claude Opus 4.6
 **Date:** 2026-02-28
-**Bot Version:** 2.0.0
+**Bot Version:** 2.0.1
 **SDK Version:** torchsdk 3.7.23
 **On-Chain Version:** V3.7.8 (Program ID: `8hbUkonssSEEtkqzwM7ZcZrD9evacM92TcWSooVF4BeT`)
-**Prior Audit:** v1.0.2, 2026-02-13 — 2 low findings (1 resolved, 1 carried forward), 5 informational (1 resolved)
+**Prior Audit:** v1.0.2, 2026-02-13 — 2 low findings (both resolved in v2.0.1), 5 informational (1 resolved)

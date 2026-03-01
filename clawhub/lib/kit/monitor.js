@@ -32,7 +32,7 @@ const runMonitor = async (config, domainTokens = []) => {
                     continue;
                 // update price
                 try {
-                    const detail = await (0, torchsdk_1.getToken)(connection, mint);
+                    const detail = await (0, utils_1.withTimeout)((0, torchsdk_1.getToken)(connection, mint), 30000, 'getToken');
                     const newPrice = detail.price_sol / torchsdk_1.LAMPORTS_PER_SOL;
                     token.priceHistory.push(newPrice);
                     if (token.priceHistory.length > config.priceHistoryDepth) {
@@ -45,7 +45,7 @@ const runMonitor = async (config, domainTokens = []) => {
                 }
                 // score all active borrowers via bulk scan
                 try {
-                    const { positions } = await (0, torchsdk_1.getAllLoanPositions)(connection, mint);
+                    const { positions } = await (0, utils_1.withTimeout)((0, torchsdk_1.getAllLoanPositions)(connection, mint), 30000, 'getAllLoanPositions');
                     for (const pos of positions) {
                         try {
                             const profile = await profiler.profile(connection, pos.borrower, mint);

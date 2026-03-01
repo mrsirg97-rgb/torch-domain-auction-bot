@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.scanForLendingMarkets = void 0;
 const torchsdk_1 = require("torchsdk");
+const utils_1 = require("./utils");
 const MAX_PRICE_HISTORY = 50;
 /**
  * Discover all active borrowers for a token using bulk loan scanner.
@@ -9,7 +10,7 @@ const MAX_PRICE_HISTORY = 50;
  */
 const discoverBorrowers = async (connection, mint, log) => {
     try {
-        const { positions } = await (0, torchsdk_1.getAllLoanPositions)(connection, mint);
+        const { positions } = await (0, utils_1.withTimeout)((0, torchsdk_1.getAllLoanPositions)(connection, mint), 30000, 'getAllLoanPositions');
         return positions.map((p) => p.borrower);
     }
     catch (err) {
@@ -25,11 +26,11 @@ const scanForLendingMarkets = async (connection, existing, depth, log) => {
     const tokens = new Map(existing);
     log.info(`scanning for lending markets (depth=${depth})`);
     try {
-        const result = await (0, torchsdk_1.getTokens)(connection, {
+        const result = await (0, utils_1.withTimeout)((0, torchsdk_1.getTokens)(connection, {
             status: 'migrated',
             limit: depth,
             sort: 'newest',
-        });
+        }), 30000, 'getTokens');
         log.info(`found ${result.tokens.length} migrated tokens`);
         for (const summary of result.tokens) {
             try {
@@ -37,8 +38,8 @@ const scanForLendingMarkets = async (connection, existing, depth, log) => {
                 const prev = tokens.get(summary.mint);
                 if (prev && Date.now() - prev.lastScanned < 30000)
                     continue;
-                const detail = await (0, torchsdk_1.getToken)(connection, summary.mint);
-                const lending = await (0, torchsdk_1.getLendingInfo)(connection, summary.mint);
+                const detail = await (0, utils_1.withTimeout)((0, torchsdk_1.getToken)(connection, summary.mint), 30000, 'getToken');
+                const lending = await (0, utils_1.withTimeout)((0, torchsdk_1.getLendingInfo)(connection, summary.mint), 30000, 'getLendingInfo');
                 const priceSol = detail.price_sol / torchsdk_1.LAMPORTS_PER_SOL;
                 const prevHistory = prev?.priceHistory ?? [];
                 const trimmedHistory = [...prevHistory, priceSol].slice(-MAX_PRICE_HISTORY);

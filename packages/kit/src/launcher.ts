@@ -3,6 +3,7 @@ import { buildCreateTokenTransaction } from 'torchsdk'
 import { generateTicker } from './ticker'
 import type { LaunchResult } from './types'
 import type { Logger } from './logger'
+import { withTimeout } from './utils'
 
 export const launchDomainToken = async (
   connection: Connection,
@@ -17,12 +18,12 @@ export const launchDomainToken = async (
 
   log?.info(`launching token for ${domain} — symbol=${symbol}`)
 
-  const result = await buildCreateTokenTransaction(connection, {
+  const result = await withTimeout(buildCreateTokenTransaction(connection, {
     creator: wallet.publicKey.toBase58(),
     name,
     symbol,
     metadata_uri: metadataUri,
-  })
+  }), 30_000, 'buildCreateTokenTransaction')
 
   // sign and send
   result.transaction.partialSign(wallet)

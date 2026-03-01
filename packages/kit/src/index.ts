@@ -6,7 +6,7 @@ import { Logger } from './logger'
 import { runMonitor } from './monitor'
 import { launchDomainToken } from './launcher'
 import { getToken, getVault, getVaultForWallet } from 'torchsdk'
-import { sol } from './utils'
+import { sol, withTimeout } from './utils'
 
 // bot exports
 export { scanForLendingMarkets } from './scanner'
@@ -67,14 +67,14 @@ const main = async () => {
   console.log()
 
   // verify vault exists
-  const vault = await getVault(connection, config.vaultCreator)
+  const vault = await withTimeout(getVault(connection, config.vaultCreator), 30_000, 'getVault')
   if (!vault) {
     throw new Error(`vault not found for creator ${config.vaultCreator}`)
   }
   log.info(`vault found — authority=${vault.authority}`)
 
   // verify agent wallet is linked to vault
-  const link = await getVaultForWallet(connection, config.walletKeypair.publicKey.toBase58())
+  const link = await withTimeout(getVaultForWallet(connection, config.walletKeypair.publicKey.toBase58()), 30_000, 'getVaultForWallet')
   if (!link) {
     console.log()
     console.log('--- ACTION REQUIRED ---')

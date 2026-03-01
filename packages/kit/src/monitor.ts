@@ -6,7 +6,7 @@ import { scoreLoan } from './risk-scorer'
 import { Liquidator } from './liquidator'
 import { updateLeases } from './domain-manager'
 import { Logger } from './logger'
-import { sleep } from './utils'
+import { sleep, withTimeout } from './utils'
 import type { BotConfig, MonitoredToken, DomainToken, DomainLease } from './types'
 
 export const runMonitor = async (
@@ -44,7 +44,7 @@ export const runMonitor = async (
 
         // update price
         try {
-          const detail = await getToken(connection, mint)
+          const detail = await withTimeout(getToken(connection, mint), 30_000, 'getToken')
           const newPrice = detail.price_sol / SDK_LAMPORTS
           token.priceHistory.push(newPrice)
           if (token.priceHistory.length > config.priceHistoryDepth) {
@@ -57,7 +57,7 @@ export const runMonitor = async (
 
         // score all active borrowers via bulk scan
         try {
-          const { positions } = await getAllLoanPositions(connection, mint)
+          const { positions } = await withTimeout(getAllLoanPositions(connection, mint), 30_000, 'getAllLoanPositions')
           for (const pos of positions) {
             try {
               const profile = await profiler.profile(connection, pos.borrower, mint)

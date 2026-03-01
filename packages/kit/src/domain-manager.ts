@@ -2,6 +2,7 @@ import { Connection } from '@solana/web3.js'
 import { getHolders } from 'torchsdk'
 import type { DomainToken, DomainLease } from './types'
 import type { Logger } from './logger'
+import { withTimeout } from './utils'
 
 const DEFAULT_LEASE_DURATION_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
@@ -9,7 +10,7 @@ export const checkTopHolder = async (
   connection: Connection,
   mint: string,
 ): Promise<string | null> => {
-  const result = await getHolders(connection, mint, 1)
+  const result = await withTimeout(getHolders(connection, mint, 1), 30_000, 'getHolders')
   if (result.holders.length === 0) return null
   return result.holders[0].address
 }

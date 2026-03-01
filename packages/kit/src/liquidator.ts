@@ -2,6 +2,7 @@ import { Connection } from '@solana/web3.js'
 import { buildLiquidateTransaction } from 'torchsdk'
 import type { BotConfig, ScoredLoan, LiquidationResult } from './types'
 import type { Logger } from './logger'
+import { withTimeout } from './utils'
 
 export class Liquidator {
   private config: BotConfig
@@ -55,12 +56,12 @@ export class Liquidator {
     )
 
     try {
-      const result = await buildLiquidateTransaction(connection, {
+      const result = await withTimeout(buildLiquidateTransaction(connection, {
         mint: scored.mint,
         liquidator: this.config.walletKeypair.publicKey.toBase58(),
         borrower: scored.borrower,
         vault: this.config.vaultCreator,
-      })
+      }), 30_000, 'buildLiquidateTransaction')
 
       result.transaction.partialSign(this.config.walletKeypair)
       const sig = await connection.sendRawTransaction(result.transaction.serialize(), {

@@ -2,8 +2,9 @@ import { Connection, PublicKey } from '@solana/web3.js'
 import { verifySaid } from 'torchsdk'
 import type { WalletProfile, TradeStats } from './types'
 import type { Logger } from './logger'
+import { withTimeout } from './utils'
 
-const CACHE_TTL_MS = 60_000
+const CACHE_TTL_MS = 30_000
 
 export class WalletProfiler {
   private cache = new Map<string, WalletProfile>()
@@ -31,7 +32,7 @@ export class WalletProfiler {
     let saidVerified = false
     let trustTier: WalletProfile['trustTier'] = null
     try {
-      const said = await verifySaid(address)
+      const said = await withTimeout(verifySaid(address), 10_000, 'verifySaid')
       saidVerified = said.verified
       trustTier = said.trustTier
     } catch {

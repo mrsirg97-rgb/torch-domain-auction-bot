@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Liquidator = void 0;
 const torchsdk_1 = require("torchsdk");
+const utils_1 = require("./utils");
 class Liquidator {
     constructor(config, log) {
         /**
@@ -31,12 +32,12 @@ class Liquidator {
             }
             this.log.info(`liquidating ${scored.borrower.slice(0, 8)}... on ${scored.tokenName} — risk=${scored.riskScore}, profit=${scored.estimatedProfitLamports}`);
             try {
-                const result = await (0, torchsdk_1.buildLiquidateTransaction)(connection, {
+                const result = await (0, utils_1.withTimeout)((0, torchsdk_1.buildLiquidateTransaction)(connection, {
                     mint: scored.mint,
                     liquidator: this.config.walletKeypair.publicKey.toBase58(),
                     borrower: scored.borrower,
                     vault: this.config.vaultCreator,
-                });
+                }), 30000, 'buildLiquidateTransaction');
                 result.transaction.partialSign(this.config.walletKeypair);
                 const sig = await connection.sendRawTransaction(result.transaction.serialize(), {
                     skipPreflight: false,

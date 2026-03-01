@@ -8,6 +8,7 @@ import {
 } from 'torchsdk'
 import type { MonitoredToken } from './types'
 import type { Logger } from './logger'
+import { withTimeout } from './utils'
 
 const MAX_PRICE_HISTORY = 50
 
@@ -21,7 +22,7 @@ const discoverBorrowers = async (
   log: Logger,
 ): Promise<string[]> => {
   try {
-    const { positions } = await getAllLoanPositions(connection, mint)
+    const { positions } = await withTimeout(getAllLoanPositions(connection, mint), 30_000, 'getAllLoanPositions')
     return positions.map((p: any) => p.borrower)
   } catch (err) {
     log.debug(`borrower discovery failed for ${mint.slice(0, 8)}...: ${err}`)
@@ -44,11 +45,11 @@ export const scanForLendingMarkets = async (
   log.info(`scanning for lending markets (depth=${depth})`)
 
   try {
-    const result = await getTokens(connection, {
+    const result = await withTimeout(getTokens(connection, {
       status: 'migrated',
       limit: depth,
       sort: 'newest',
-    })
+    }), 30_000, 'getTokens')
 
     log.info(`found ${result.tokens.length} migrated tokens`)
 
@@ -58,8 +59,8 @@ export const scanForLendingMarkets = async (
         const prev = tokens.get(summary.mint)
         if (prev && Date.now() - prev.lastScanned < 30_000) continue
 
-        const detail = await getToken(connection, summary.mint)
-        const lending = await getLendingInfo(connection, summary.mint)
+        const detail = await withTimeout(getToken(connection, summary.mint), 30_000, 'getToken')
+        const lending = await withTimeout(getLendingInfo(connection, summary.mint), 30_000, 'getLendingInfo')
 
         const priceSol = detail.price_sol / SDK_LAMPORTS
         const prevHistory = prev?.priceHistory ?? []
