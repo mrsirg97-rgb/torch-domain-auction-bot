@@ -4,29 +4,18 @@ exports.scanForLendingMarkets = void 0;
 const torchsdk_1 = require("torchsdk");
 const MAX_PRICE_HISTORY = 50;
 /**
- * Probe token holders for active loan positions.
- * Returns addresses that have an active loan on this token.
+ * Discover all active borrowers for a token using bulk loan scanner.
+ * Returns all borrower addresses with open positions (not just top-20 holders).
  */
 const discoverBorrowers = async (connection, mint, log) => {
-    const borrowers = [];
     try {
-        const { holders } = await (0, torchsdk_1.getHolders)(connection, mint, 20);
-        for (const holder of holders) {
-            try {
-                const pos = await (0, torchsdk_1.getLoanPosition)(connection, mint, holder.address);
-                if (pos.health !== 'none') {
-                    borrowers.push(holder.address);
-                }
-            }
-            catch {
-                // skip — holder may not have a loan
-            }
-        }
+        const { positions } = await (0, torchsdk_1.getAllLoanPositions)(connection, mint);
+        return positions.map((p) => p.borrower);
     }
     catch (err) {
         log.debug(`borrower discovery failed for ${mint.slice(0, 8)}...: ${err}`);
+        return [];
     }
-    return borrowers;
 };
 /**
  * Scan for tokens with active lending markets.

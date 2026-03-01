@@ -1,5 +1,5 @@
 import { Connection } from '@solana/web3.js'
-import { getLoanPosition, getToken, LAMPORTS_PER_SOL as SDK_LAMPORTS } from 'torchsdk'
+import { getLoanPosition, getAllLoanPositions, getToken, LAMPORTS_PER_SOL as SDK_LAMPORTS } from 'torchsdk'
 import { scanForLendingMarkets } from './scanner'
 import { WalletProfiler } from './wallet-profiler'
 import { scoreLoan } from './risk-scorer'
@@ -55,23 +55,25 @@ export const runMonitor = async (
           log.debug(`price update failed for ${token.symbol}`)
         }
 
-        // score each known borrower
-        for (const borrower of token.activeBorrowers) {
-          try {
-            const position = await getLoanPosition(connection, mint, borrower)
-            if (position.health === 'none') continue
+        // score all active borrowers via bulk scan
+        try {
+          const { positions } = await getAllLoanPositions(connection, mint)
+          for (const pos of positions) {
+            try {
+              const profile = await profiler.profile(connection, pos.borrower, mint)
+              const scored = scoreLoan(token, pos.borrower, pos, profile)
 
-            const profile = await profiler.profile(connection, borrower, mint)
-            const scored = scoreLoan(token, borrower, position, profile)
+              log.info(
+                `${token.symbol} — ${pos.borrower.slice(0, 8)}... risk=${scored.riskScore} health=${pos.health}`,
+              )
 
-            log.info(
-              `${token.symbol} — ${borrower.slice(0, 8)}... risk=${scored.riskScore} health=${position.health}`,
-            )
-
-            await liquidator.tryLiquidate(connection, scored)
-          } catch (err) {
-            log.debug(`error scoring ${borrower.slice(0, 8)}...`, err)
+              await liquidator.tryLiquidate(connection, scored)
+            } catch (err) {
+              log.debug(`error scoring ${pos.borrower.slice(0, 8)}...`, err)
+            }
           }
+        } catch (err) {
+          log.debug(`bulk loan scan failed for ${token.symbol}`, err)
         }
       }
     } catch (err) {

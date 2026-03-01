@@ -1,28 +1,45 @@
 ---
 name: torch-domain-auction-bot
-version: "1.0.2"
-description: Domain lending protocol on Solana. Domains become tokens. Tokens become collateral. Top holder controls the domain. Borrow SOL against your position -- but get liquidated and you lose the domain. Built on torchsdk v3.2.3 and the Torch Market protocol.
+version: "2.0.0"
+description: Domain lending protocol on Solana. Domains become tokens. Tokens become collateral. Top holder controls the domain. Borrow SOL against your position -- but get liquidated and you lose the domain. Built on torchsdk v3.7.23 and the Torch Market protocol.
 license: MIT
 disable-model-invocation: true
 requires:
   env:
-    - SOLANA_RPC_URL
-    - VAULT_CREATOR
+    - name: SOLANA_RPC_URL
+      required: true
+    - name: VAULT_CREATOR
+      required: true
+    - name: SOLANA_PRIVATE_KEY
+      required: false
 metadata:
+  clawdbot:
+    requires:
+      env:
+        - name: SOLANA_RPC_URL
+          required: true
+        - name: VAULT_CREATOR
+          required: true
+        - name: SOLANA_PRIVATE_KEY
+          required: false
   openclaw:
     requires:
       env:
-        - SOLANA_RPC_URL
-        - VAULT_CREATOR
+        - name: SOLANA_RPC_URL
+          required: true
+        - name: VAULT_CREATOR
+          required: true
+        - name: SOLANA_PRIVATE_KEY
+          required: false
     primaryEnv: SOLANA_RPC_URL
     install:
       - id: npm-torch-domain-auction-bot
         kind: npm
-        package: torch-domain-auction-bot@^1.0.2
+        package: torch-domain-auction-bot@^2.0.0
         flags: []
         label: "Install Torch Domain Auction Bot (npm, optional -- SDK is bundled in lib/torchsdk/, kit is in lib/kit/)"
   author: torch-market
-  version: "1.0.2"
+  version: "2.0.0"
   clawhub: https://clawhub.ai/mrsirg97-rgb/torch-domain-auction-bot
   kit-source: https://github.com/mrsirg97-rgb/torch-domain-auction-bot
   website: https://torch.market
@@ -44,7 +61,13 @@ metadata:
     - lending-markets
     - domain-services
     - agent-infrastructure
-compatibility: Requires SOLANA_RPC_URL and VAULT_CREATOR. SOLANA_PRIVATE_KEY optional. Agent wallet holds nothing. All value in vault. SDK bundled in lib/torchsdk/, kit (bot + scraper) in lib/kit/.
+compatibility: >-
+  REQUIRED: SOLANA_RPC_URL (HTTPS Solana RPC endpoint)
+  REQUIRED: VAULT_CREATOR (vault creator pubkey).
+  OPTIONAL: SOLANA_PRIVATE_KEY -- the kit generates a fresh disposable keypair in-process if not provided. The agent wallet holds nothing of value (~0.01 SOL for gas). All token creation and seed liquidity SOL routes through the vault. The vault can be created and funded entirely by the human principal.
+  This skill sets disable-model-invocation: true -- it must not be invoked autonomously without explicit user initiation.
+  The Torch SDK is bundled in lib/torchsdk/ -- all source included for full auditability. No API server dependency.
+  Oracle resolution uses CoinGecko public API (read-only, no key required). The vault can be created and funded entirely by the human principal -- the agent never needs access to funds.
 ---
 
 # Torch Domain Auction
@@ -208,7 +231,7 @@ If the agent keypair is compromised, the attacker gets dust and vault access you
 ### 1. Install
 
 ```bash
-npm install torch-domain-auction-bot@1.0.2
+npm install torch-domain-auction-bot@2.0.0
 ```
 
 ### 2. Create and Fund a Vault
@@ -465,3 +488,13 @@ That's the power of composing Torch's primitives: bonding curves, lending market
 - Torch SDK (npm): [npmjs.com/package/torchsdk](https://www.npmjs.com/package/torchsdk)
 - Torch Market: [torch.market](https://torch.market)
 - Program ID: `8hbUkonssSEEtkqzwM7ZcZrD9evacM92TcWSooVF4BeT`
+
+---
+
+## Changelog
+
+### v2.0.0
+
+- **Upgraded torchsdk from 3.2.3 to 3.7.23.** Major SDK update adds treasury lock PDAs (V27), dynamic Raydium network detection, auto-migration bundling on bonding curve completion (`buildBuyTransaction` now returns optional `migrationTransaction`), vault-routed Raydium CPMM swaps (`buildVaultSwapTransaction`), Token-2022 fee harvesting (`buildHarvestFeesTransaction`, `buildSwapFeesToSolTransaction`), bulk loan scanning (`getAllLoanPositions`), on-chain token metadata queries (`getTokenMetadata`), and ephemeral agent keypair factory (`createEphemeralAgent`).
+- **Updated env format in skill frontmatter.** Environment variable declarations now use structured `name`/`required` format for compatibility with ClawHub and OpenClaw agent runners.
+- **Added clawdbot metadata section.** ClawBot runner now has explicit env requirements alongside OpenClaw.

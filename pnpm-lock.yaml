@@ -6,7 +6,7 @@ settings:
 
 importers:
 
-  packages/bot:
+  packages/kit:
     dependencies:
       '@coral-xyz/anchor':
         specifier: 0.32.1
@@ -21,8 +21,8 @@ importers:
         specifier: 6.0.0
         version: 6.0.0
       torchsdk:
-        specifier: 3.2.3
-        version: 3.2.3(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: 3.7.23
+        version: 3.7.23(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10)
     devDependencies:
       '@types/node':
         specifier: 20.19.33
@@ -333,8 +333,8 @@ packages:
   toml@3.0.0:
     resolution: {integrity: sha512-y/mWCZinnvxjTKYhJ+pYxwD0mRLVvOtdS2Awbgxln6iEnt4rk0yBxeSBHkGJcPucRiG0e55mwWp+g/05rsrd6w==}
 
-  torchsdk@3.2.3:
-    resolution: {integrity: sha512-a/NIlqN78P57tseJk6eTUfIUVK2cKCkFJV5yocpqErpXDgN75HqFufrX/k+cAGJjJkNHdHFiAauJJIl4UluRfg==}
+  torchsdk@3.7.23:
+    resolution: {integrity: sha512-05dTUltAdOsi5d8bHRT0wzUaDPq0nG4q/O+n3iG41EWUfj8MManajIdXRZm5U2lemAgjL5r//oKNgwzyMAaMsg==}
     peerDependencies:
       '@solana/web3.js': ^1.98.0
 
@@ -752,7 +752,7 @@ snapshots:
 
   toml@3.0.0: {}
 
-  torchsdk@3.2.3(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10):
+  torchsdk@3.7.23(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10):
     dependencies:
       '@coral-xyz/anchor': 0.32.1(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@solana/spl-token': 0.4.14(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)(utf-8-validate@5.0.10)

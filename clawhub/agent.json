@@ -1,7 +1,7 @@
 {
   "name": "Torch Domain Auction Bot",
-  "description": "Domain lending protocol on Solana. Domains become tokens. Tokens become collateral. Top holder controls the domain. Borrow SOL against your position -- but get liquidated and you lose the domain. The bot discovers domains, launches them as Torch Market tokens, monitors lending positions, and auto-liquidates underwater loans through a Torch Vault. When a borrower is liquidated, their collateral changes hands and the domain lease rotates to the new top holder. The agent keypair is disposable. All value routes through the vault. Built on torchsdk v3.2.3.",
-  "version": "1.0.2",
+  "description": "Domain lending protocol on Solana. Domains become tokens. Tokens become collateral. Top holder controls the domain. Borrow SOL against your position -- but get liquidated and you lose the domain. The bot discovers domains, launches them as Torch Market tokens, monitors lending positions, and auto-liquidates underwater loans through a Torch Vault. When a borrower is liquidated, their collateral changes hands and the domain lease rotates to the new top holder. The agent keypair is disposable. All value routes through the vault. Built on torchsdk v3.7.23.",
+  "version": "2.0.0",
   "type": "protocol",
   "disable-model-invocation": true,
   "website": "https://torch.market",
@@ -39,7 +39,7 @@
       {
         "id": "npm-torch-domain-auction-bot",
         "kind": "npm",
-        "package": "torch-domain-auction-bot@^1.0.2",
+        "package": "torch-domain-auction-bot@^2.0.0",
         "flags": [],
         "label": "Install Torch Domain Auction Bot (npm, optional -- SDK is bundled in lib/torchsdk/, kit (bot + scraper) is in lib/kit/)"
       }

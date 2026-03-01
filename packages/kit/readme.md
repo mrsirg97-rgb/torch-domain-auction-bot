@@ -62,7 +62,7 @@ cd packages/kit && pnpm test:scraper
 All pinned to exact versions. No `^` or `~` ranges.
 
 - `@solana/web3.js` 1.98.4
-- `torchsdk` 3.2.3
+- `torchsdk` 3.7.23
 - `@coral-xyz/anchor` 0.32.1
 - `@solana/spl-token` 0.4.14
 

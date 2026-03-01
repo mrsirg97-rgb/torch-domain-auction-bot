@@ -43,20 +43,23 @@ const runMonitor = async (config, domainTokens = []) => {
                 catch {
                     log.debug(`price update failed for ${token.symbol}`);
                 }
-                // score each known borrower
-                for (const borrower of token.activeBorrowers) {
-                    try {
-                        const position = await (0, torchsdk_1.getLoanPosition)(connection, mint, borrower);
-                        if (position.health === 'none')
-                            continue;
-                        const profile = await profiler.profile(connection, borrower, mint);
-                        const scored = (0, risk_scorer_1.scoreLoan)(token, borrower, position, profile);
-                        log.info(`${token.symbol} — ${borrower.slice(0, 8)}... risk=${scored.riskScore} health=${position.health}`);
-                        await liquidator.tryLiquidate(connection, scored);
+                // score all active borrowers via bulk scan
+                try {
+                    const { positions } = await (0, torchsdk_1.getAllLoanPositions)(connection, mint);
+                    for (const pos of positions) {
+                        try {
+                            const profile = await profiler.profile(connection, pos.borrower, mint);
+                            const scored = (0, risk_scorer_1.scoreLoan)(token, pos.borrower, pos, profile);
+                            log.info(`${token.symbol} — ${pos.borrower.slice(0, 8)}... risk=${scored.riskScore} health=${pos.health}`);
+                            await liquidator.tryLiquidate(connection, scored);
+                        }
+                        catch (err) {
+                            log.debug(`error scoring ${pos.borrower.slice(0, 8)}...`, err);
+                        }
                     }
-                    catch (err) {
-                        log.debug(`error scoring ${borrower.slice(0, 8)}...`, err);
-                    }
+                }
+                catch (err) {
+                    log.debug(`bulk loan scan failed for ${token.symbol}`, err);
                 }
             }
         }

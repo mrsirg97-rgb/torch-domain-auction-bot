@@ -3,8 +3,7 @@ import {
   getTokens,
   getToken,
   getLendingInfo,
-  getLoanPosition,
-  getHolders,
+  getAllLoanPositions,
   LAMPORTS_PER_SOL as SDK_LAMPORTS,
 } from 'torchsdk'
 import type { MonitoredToken } from './types'
@@ -13,31 +12,21 @@ import type { Logger } from './logger'
 const MAX_PRICE_HISTORY = 50
 
 /**
- * Probe token holders for active loan positions.
- * Returns addresses that have an active loan on this token.
+ * Discover all active borrowers for a token using bulk loan scanner.
+ * Returns all borrower addresses with open positions (not just top-20 holders).
  */
 const discoverBorrowers = async (
   connection: Connection,
   mint: string,
   log: Logger,
 ): Promise<string[]> => {
-  const borrowers: string[] = []
   try {
-    const { holders } = await getHolders(connection, mint, 20)
-    for (const holder of holders) {
-      try {
-        const pos = await getLoanPosition(connection, mint, holder.address)
-        if (pos.health !== 'none') {
-          borrowers.push(holder.address)
-        }
-      } catch {
-        // skip — holder may not have a loan
-      }
-    }
+    const { positions } = await getAllLoanPositions(connection, mint)
+    return positions.map((p: any) => p.borrower)
   } catch (err) {
     log.debug(`borrower discovery failed for ${mint.slice(0, 8)}...: ${err}`)
+    return []
   }
-  return borrowers
 }
 
 /**
